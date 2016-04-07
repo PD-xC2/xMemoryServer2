@@ -26,6 +26,9 @@ public:
     static const char* DISK_LOCATION;
     static const int WRITE=1;
     static const int READ=0;
+    static const char* ID;
+    static const char* OPERATION;
+    static const char* MSG;
     /*-------errores por parte del server------*/
     static const char* ERROR1;
     static const char* ERROR2;

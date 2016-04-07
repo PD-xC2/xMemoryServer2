@@ -5,6 +5,8 @@
  * Created on March 22, 2016, 9:10 PM
  */
 
+#include <c++/4.6/iosfwd>
+
 #include "MemHandler.h"
 
 /**
@@ -13,12 +15,13 @@
  * @param port dato tipo entero, es el puerto donde crearemos
  * el server.
  */
-MemHandler::MemHandler(int port, char* DiskLocation) {
+MemHandler::MemHandler(int port, const char* DiskLocation) {
     _servidor= new servidor(port);
     _chuckMemory=malloc(SPACE_MEMORY);
     _writerMemoryPointer=_chuckMemory;
     _diskLocation=DiskLocation;
     _listaDatosAlmacenados= new lista();
+    LoopForService();
 }
 
 /**
@@ -28,7 +31,6 @@ MemHandler::MemHandler(int port, char* DiskLocation) {
 MemHandler::~MemHandler() {
     free(_chuckMemory);
     _writerMemoryPointer=NULL;
-    delete []_diskLocation;
     delete _listaDatosAlmacenados;
     delete _servidor;
 }
@@ -45,18 +47,13 @@ void MemHandler::LoopForService() {
     while(true){
         //obtenemos el mensaje.
         char* IncommingMessage= _servidor->listenMsg();
-        _JsonDocument.Parse((const char*)IncommingMessage);
-        Value & operation = _JsonDocument["OP"];
-        int op= operation.GetInt();
-        //recreamos el nuevo mensaje
-        string temp= IncommingMessage;
-        string cutMsg= temp.substr(CERO,(temp.length()-DIEZ));
-        cutMsg.append("}\0");
-        //verificamos la operacion
+        _JsonDocument.Parse(IncommingMessage);
+        Value & dataFromJson = _JsonDocument[OPERATION];
+        int op= dataFromJson.GetInt();
         if(op==WRITE)
-            writeOnMemory(cutMsg.c_str());
+            writeOnMemory((const char*)IncommingMessage);
         else if(op==READ)
-            readOnMemory(cutMsg.c_str());
+            readOnMemory((const char*)IncommingMessage);
     }
 }
 
@@ -70,11 +67,11 @@ void MemHandler::readOnMemory(const char* mensaje) {
     //parseamos el documento
     _JsonDocument.Parse(mensaje);
     //obtenemos el id
-    Value & idFromJson= _JsonDocument["ID"];
+    Value & idFromJson= _JsonDocument[ID];
     int id= idFromJson.GetInt();
     //buscamos el nodo.
     Nodo* temp= _listaDatosAlmacenados->getHead();
-    for(int i=0; i<_listaDatosAlmacenados->getSize(); i++){
+    while(temp!=NULL){
         if(temp->getID()==id)
             break;
         temp= temp->getNext();
@@ -88,7 +85,7 @@ void MemHandler::readOnMemory(const char* mensaje) {
     else if(!temp->saveAtDisk()){
         int space=temp->getSpaceSave();
         int size= temp->getSizeSave();
-        char* dato[size+UNO];
+        char dato[size+UNO];
         void * SpaceOnMemory= (_chuckMemory+space);
         for(int i=0; i<size; i++){
             *(dato+i)=*((char*)SpaceOnMemory+i);
@@ -101,9 +98,10 @@ void MemHandler::readOnMemory(const char* mensaje) {
     else{
         int space=temp->getSpaceSave();
         int size= temp->getSizeSave();
-        char* dato[size+UNO];
+        char dato[size+UNO];
         fstream readOnDisk(_diskLocation);
         if(readOnDisk.is_open()){
+            readOnDisk.seekg(CERO);
             readOnDisk.seekg(space);
             readOnDisk.read(dato,size);
         }
@@ -121,31 +119,42 @@ void MemHandler::readOnMemory(const char* mensaje) {
  */
 void MemHandler::writeOnMemory(const char* mensaje) {
     _JsonDocument.Parse(mensaje);
+    Value& getDataOfJson= _JsonDocument[MSG];
     //string para obtener el largo de caracteres de la cadena.
     //**no sirve para nada mas**
-    string getMsgDatas= mensaje;
+    StringBuffer sbr;
+    Writer<StringBuffer>writer(sbr);
+    getDataOfJson.Accept(writer);
+    string getMsgDatas= sbr.GetString();
     //id del mensaje que nos esta entrando.
-    int idOfData;
-    //tamaño del mensaje que nos esta entrando
-    int sizeOfData=getMsgDatas.length();
+    getDataOfJson= _JsonDocument[ID];
+    int idOfData=getDataOfJson.GetInt();
     //espacio en memoria donde se almacenara el dato
     int spaceOfMemory=(SPACE_MEMORY-_MemoryLeft);
+    //tamaño del mensaje que nos esta entrando
+    int sizeOfData=getMsgDatas.length();
     /*opcion por si ya no nos queda espacio en memoria, 
      en ese caso pasamos todo a disco y verificamos que aun nos quede 
      espacio en disco*/
-    if(sizeOfData>=_MemoryLeft && _DiskLeft<SPACE_MEMORY){
+    if(sizeOfData>=_MemoryLeft && sizeOfData<_DiskLeft){
         PassToDisk();
     }
     /*ciclo para escribir sobre la memoria, mientras esta aun le quede
-    espacio*/
+    espacio, crea la variable mensajeFormJson para que se guarde nada
+     mas el mensaje propio del dato y no la opracion que se realiza
+     o el id del archivo, ya que de esa informacion se encarga la lista
+     de los datos guardados en memoria*/
+    char mensajeFromJson[getMsgDatas.length()+UNO];
+    strcpy(mensajeFromJson,getMsgDatas.c_str());
+    mensajeFromJson[getMsgDatas.length()]='\0';
     for(int i=0; i<sizeOfData; i++,_MemoryLeft--){
         //movemos el puntero
         _writerMemoryPointer+=i;
         //escribimos en la memoria.
-        *((char*)_writerMemoryPointer)=*(mensaje+i);
+        *((char*)_writerMemoryPointer)=*(mensajeFromJson+i);
     }
-    Value & IdFromJson= _JsonDocument["ID"];
-    idOfData=IdFromJson.GetInt();
+    //guardamos los datos de punteo a la memoria del nuevo mensaje que 
+    //acabamos de guardar.
     _listaDatosAlmacenados->insert(idOfData,spaceOfMemory,sizeOfData);
 }
 
@@ -156,11 +165,11 @@ void MemHandler::PassToDisk() {
     fstream diskWriter(_diskLocation);
     if(diskWriter.is_open()){
         Nodo* temp=_listaDatosAlmacenados->getHead();
-         void* PointerOfMemory;
+        void* PointerOfMemory;
         for(int i=0; i<_listaDatosAlmacenados->getSize(); i++){
             if(!temp->saveAtDisk()){
                 //movmevos el puntero del archivo a la ultima posicion
-                diskWriter.seekg(_DiskPointer);
+                diskWriter.seekg(CERO,ios::end);
                 //obtenemos los datos del json que vamos a guardar
                 int space=temp->getSpaceSave();
                 int size=temp->getSizeSave();
@@ -172,7 +181,6 @@ void MemHandler::PassToDisk() {
                 temp->setSaveDisk();
                 temp->setSpaceSave(_DiskPointer);
                 //movemos el puntero del disco
-                _DiskPointer+=size;
                 _DiskLeft-=size;
             }
             temp= temp->getNext();
