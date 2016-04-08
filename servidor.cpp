@@ -9,8 +9,7 @@
 
 servidor::servidor(int port) {
     _portno= port;
-    _dataRecivedFromSocket= malloc(DOSCIENTOS_CINCUENTA_Y_SEIS);
-    bzero(_dataRecivedFromSocket,DOSCIENTOS_CINCUENTA_Y_SEIS);
+    _dataRecivedFromSocket= malloc(CIENTO_VEINTE_OCHO);
     _sockfd = socket(AF_INET, SOCK_STREAM, CERO);
     //resivision de si la conexion del socket 
     // fue positiva o fallida.
@@ -39,16 +38,16 @@ servidor::servidor(int port) {
 }
 
 servidor::~servidor() {
+    free(_dataRecivedFromSocket);
 }
 
-char* servidor::listenMsg() {
-    bzero(_dataRecivedFromSocket, DOSCIENTOS_CINCUENTA_Y_SEIS);
+const char* servidor::listenMsg() {
+    bzero(_dataRecivedFromSocket, CIENTO_VEINTE_OCHO);
     _n = recv(_newsockfd,_dataRecivedFromSocket,
-            DOSCIENTOS_CINCUENTA_Y_SEIS-UNO,0);
+            CIENTO_VEINTE_OCHO-UNO,0);
     if(_n<CERO)
-        error(ERROR3);
-    return (char*)_dataRecivedFromSocket;
-    
+        error(ERROR5);
+    return (const char*)_dataRecivedFromSocket;   
 }
 
 void servidor::error(const char* msg) {
@@ -59,7 +58,7 @@ void servidor::error(const char* msg) {
 void servidor::sendMsg(char* pMsg, int pSize) {
     _n=send(_newsockfd, pMsg, pSize,0);
     if (_n < CERO) 
-        error(ERROR5);
+        error(ERROR4);
     if(DEBUG)
         cout<<"mensaje enviado"<<endl;
 }

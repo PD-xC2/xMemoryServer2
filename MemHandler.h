@@ -17,15 +17,12 @@
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 
-using namespace rapidjson;
-
 class MemHandler :public Constantes {
 public:
     MemHandler(int port, const char* DiskLocation);
     virtual ~MemHandler();
     void LoopForService();
 private:
-    Document _JsonDocument;
     servidor * _servidor;
     lista * _listaDatosAlmacenados;
     void* _chuckMemory;
@@ -33,7 +30,6 @@ private:
     const char* _diskLocation;
     int _MemoryLeft;
     int _DiskLeft;
-    int _DiskPointer;
     void PassToDisk();
     void writeOnMemory(const char* mensaje);
     void readOnMemory(const char * mensaje);

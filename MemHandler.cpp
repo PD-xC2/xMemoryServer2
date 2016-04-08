@@ -4,21 +4,20 @@
  * 
  * Created on March 22, 2016, 9:10 PM
  */
-
-#include <c++/4.6/iosfwd>
-
 #include "MemHandler.h"
 
 /**
  * construtor de la clase, recibe un dato, que es el puerto 
  * por donde instancearemos el server.
- * @param port dato tipo entero, es el puerto donde crearemos
- * el server.
+ * @param port puerto por donde instancearemos nuestro programa
+ * @param DiskLocation lugar donde guardaremos los archivos del server
  */
 MemHandler::MemHandler(int port, const char* DiskLocation) {
     _servidor= new servidor(port);
     _chuckMemory=malloc(SPACE_MEMORY);
     _writerMemoryPointer=_chuckMemory;
+    _MemoryLeft=SPACE_MEMORY;
+    _DiskLeft=SPACE_MEMORY;
     _diskLocation=DiskLocation;
     _listaDatosAlmacenados= new lista();
     LoopForService();
@@ -46,14 +45,21 @@ void MemHandler::LoopForService() {
     //ciclo para esuchar los mensajes del cliente
     while(true){
         //obtenemos el mensaje.
-        char* IncommingMessage= _servidor->listenMsg();
-        _JsonDocument.Parse(IncommingMessage);
-        Value & dataFromJson = _JsonDocument[OPERATION];
-        int op= dataFromJson.GetInt();
-        if(op==WRITE)
-            writeOnMemory((const char*)IncommingMessage);
-        else if(op==READ)
-            readOnMemory((const char*)IncommingMessage);
+        string IncommingMessage= _servidor->listenMsg();
+        rapidjson::Document _JsonDocument;
+        _JsonDocument.Parse(IncommingMessage.c_str());
+        if(!_JsonDocument.IsObject()){
+            std::cout<<"falla, archivo no es tipo json"<<std::endl;
+            return;
+        }
+        rapidjson::Value & data = _JsonDocument[OPERATION];
+        int op= data.GetInt();
+        if(op==WRITE){
+            writeOnMemory(IncommingMessage.c_str());
+        }
+        else if(op==READ){
+            readOnMemory(IncommingMessage.c_str());
+        }
     }
 }
 
@@ -65,9 +71,10 @@ void MemHandler::LoopForService() {
  */
 void MemHandler::readOnMemory(const char* mensaje) {
     //parseamos el documento
+    rapidjson::Document _JsonDocument;
     _JsonDocument.Parse(mensaje);
     //obtenemos el id
-    Value & idFromJson= _JsonDocument[ID];
+    rapidjson::Value & idFromJson= _JsonDocument[ID];
     int id= idFromJson.GetInt();
     //buscamos el nodo.
     Nodo* temp= _listaDatosAlmacenados->getHead();
@@ -90,7 +97,7 @@ void MemHandler::readOnMemory(const char* mensaje) {
         for(int i=0; i<size; i++){
             *(dato+i)=*((char*)SpaceOnMemory+i);
         }
-        dato[size+UNO]='\0';
+        dato[size]='\0';
         _servidor->sendMsg(dato,size+UNO);
         delete [] dato;
     }
@@ -105,7 +112,7 @@ void MemHandler::readOnMemory(const char* mensaje) {
             readOnDisk.seekg(space);
             readOnDisk.read(dato,size);
         }
-        dato[size+UNO]='\0';
+        dato[size]='\0';
         _servidor->sendMsg(dato,size+UNO);
         delete [] dato;
     }
@@ -118,12 +125,13 @@ void MemHandler::readOnMemory(const char* mensaje) {
  * se recibio desde el server.
  */
 void MemHandler::writeOnMemory(const char* mensaje) {
+    rapidjson::Document _JsonDocument;
     _JsonDocument.Parse(mensaje);
-    Value& getDataOfJson= _JsonDocument[MSG];
+    rapidjson::Value& getDataOfJson= _JsonDocument[MSG];
     //string para obtener el largo de caracteres de la cadena.
     //**no sirve para nada mas**
-    StringBuffer sbr;
-    Writer<StringBuffer>writer(sbr);
+    rapidjson::StringBuffer sbr;
+    rapidjson::Writer<rapidjson::StringBuffer>writer(sbr);
     getDataOfJson.Accept(writer);
     string getMsgDatas= sbr.GetString();
     //id del mensaje que nos esta entrando.
@@ -139,23 +147,22 @@ void MemHandler::writeOnMemory(const char* mensaje) {
     if(sizeOfData>=_MemoryLeft && sizeOfData<_DiskLeft){
         PassToDisk();
     }
+    else if(sizeOfData>_DiskLeft){
+        _servidor->sendMsg((char*)MEMORY_LEAK,DIEZ+DOS);
+        return;
+    }
     /*ciclo para escribir sobre la memoria, mientras esta aun le quede
     espacio, crea la variable mensajeFormJson para que se guarde nada
      mas el mensaje propio del dato y no la opracion que se realiza
      o el id del archivo, ya que de esa informacion se encarga la lista
      de los datos guardados en memoria*/
-    char mensajeFromJson[getMsgDatas.length()+UNO];
-    strcpy(mensajeFromJson,getMsgDatas.c_str());
-    mensajeFromJson[getMsgDatas.length()]='\0';
-    for(int i=0; i<sizeOfData; i++,_MemoryLeft--){
-        //movemos el puntero
-        _writerMemoryPointer+=i;
-        //escribimos en la memoria.
-        *((char*)_writerMemoryPointer)=*(mensajeFromJson+i);
-    }
+    strcpy((char*)_writerMemoryPointer,getMsgDatas.c_str());
+    _writerMemoryPointer+=sizeOfData;
+    _MemoryLeft-=sizeOfData;
     //guardamos los datos de punteo a la memoria del nuevo mensaje que 
     //acabamos de guardar.
     _listaDatosAlmacenados->insert(idOfData,spaceOfMemory,sizeOfData);
+    std::cout<<"prueba-8"<<std::endl;
 }
 
 /**
@@ -171,6 +178,7 @@ void MemHandler::PassToDisk() {
                 //movmevos el puntero del archivo a la ultima posicion
                 diskWriter.seekg(CERO,ios::end);
                 //obtenemos los datos del json que vamos a guardar
+                int DiskPointer= diskWriter.tellg();
                 int space=temp->getSpaceSave();
                 int size=temp->getSizeSave();
                 //obtenemos el puntero de la memoria
@@ -179,7 +187,7 @@ void MemHandler::PassToDisk() {
                 diskWriter.write((char*)PointerOfMemory,size);
                 //alteramos los datos internos del nodo.
                 temp->setSaveDisk();
-                temp->setSpaceSave(_DiskPointer);
+                temp->setSpaceSave(DiskPointer);
                 //movemos el puntero del disco
                 _DiskLeft-=size;
             }
@@ -189,5 +197,5 @@ void MemHandler::PassToDisk() {
         diskWriter.close();
     }
     //limpiamos la memoria
-    bzero(_chuckMemory,DOSCIENTOS_CINCUENTA_Y_SEIS);
+    bzero(_chuckMemory,SPACE_MEMORY);
 }

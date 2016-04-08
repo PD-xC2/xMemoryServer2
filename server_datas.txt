@@ -1,1 +1,2 @@
-{"name":1234,"edad":20}{"name":1234,"edad":20}{"name":1234,"edad":20}{"name":1234,"edad":20}
+{"id":0,"op":1,"msg":{"name":1234,"edad":20}}
+{"name":1234,"edad":20}{"name":1234,"edad":20}{"name":1234,"edad":20}{"name":1234,"edad":20}{"name":1234,"edad":20}
