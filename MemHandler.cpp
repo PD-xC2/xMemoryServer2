@@ -19,6 +19,7 @@ MemHandler::MemHandler(int port, const char* DiskLocation) {
     _MemoryLeft=SPACE_MEMORY;
     _DiskLeft=SPACE_MEMORY;
     _diskLocation=DiskLocation;
+    _DiskPointer=CERO;
     _listaDatosAlmacenados= new lista();
     LoopForService();
 }
@@ -56,8 +57,10 @@ void MemHandler::LoopForService() {
         int op= data.GetInt();
         if(op==WRITE){
             writeOnMemory(IncommingMessage.c_str());
+            _servidor->sendMsg("save\0",5);
         }
         else if(op==READ){
+            std::cout<<"prueba-1"<<std::endl;
             readOnMemory(IncommingMessage.c_str());
         }
     }
@@ -83,6 +86,7 @@ void MemHandler::readOnMemory(const char* mensaje) {
             break;
         temp= temp->getNext();
     }
+    std::cout<<"prueba5"<<std::endl;
     //verificamos que el nodo no sea nulo
     if(temp==NULL){
         _servidor->sendMsg("NULL\0",CUATRO);
@@ -93,13 +97,12 @@ void MemHandler::readOnMemory(const char* mensaje) {
         int space=temp->getSpaceSave();
         int size= temp->getSizeSave();
         char dato[size+UNO];
-        void * SpaceOnMemory= (_chuckMemory+space);
+        void * SpaceOnMemory=(_chuckMemory+space);
         for(int i=0; i<size; i++){
             *(dato+i)=*((char*)SpaceOnMemory+i);
         }
         dato[size]='\0';
         _servidor->sendMsg(dato,size+UNO);
-        delete [] dato;
     }
     //tomamos por hecho que los datos estan en disco
     else{
@@ -114,7 +117,6 @@ void MemHandler::readOnMemory(const char* mensaje) {
         }
         dato[size]='\0';
         _servidor->sendMsg(dato,size+UNO);
-        delete [] dato;
     }
 }
 
@@ -162,7 +164,6 @@ void MemHandler::writeOnMemory(const char* mensaje) {
     //guardamos los datos de punteo a la memoria del nuevo mensaje que 
     //acabamos de guardar.
     _listaDatosAlmacenados->insert(idOfData,spaceOfMemory,sizeOfData);
-    std::cout<<"prueba-8"<<std::endl;
 }
 
 /**
@@ -176,7 +177,7 @@ void MemHandler::PassToDisk() {
         for(int i=0; i<_listaDatosAlmacenados->getSize(); i++){
             if(!temp->saveAtDisk()){
                 //movmevos el puntero del archivo a la ultima posicion
-                diskWriter.seekg(CERO,ios::end);
+                diskWriter.seekg(_DiskPointer);
                 //obtenemos los datos del json que vamos a guardar
                 int DiskPointer= diskWriter.tellg();
                 int space=temp->getSpaceSave();
@@ -190,12 +191,15 @@ void MemHandler::PassToDisk() {
                 temp->setSpaceSave(DiskPointer);
                 //movemos el puntero del disco
                 _DiskLeft-=size;
+                _DiskPointer+=size;
             }
             temp= temp->getNext();
         }
         //cerramos el archivo
         diskWriter.close();
     }
-    //limpiamos la memoria
+    //limpiamos la memoria y reestablecemos los datos de escritura en memoria
     bzero(_chuckMemory,SPACE_MEMORY);
+    _writerMemoryPointer=_chuckMemory;
+    _MemoryLeft=SPACE_MEMORY;
 }

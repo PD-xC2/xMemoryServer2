@@ -6,7 +6,6 @@
  */
 
 #include "Lista.h"
-#include "servidor.h"
 
 lista::lista() {
 
@@ -21,24 +20,18 @@ lista::~lista() {
  * un numero entero.
  */
 void lista::insert(int pID,int pSpace, int pSize) {
-    cout<<"prueba1"<<endl;
     if(_head==NULL){
         _head=new Nodo(pID,pSpace,pSize);
         _size++;
         return;
     }
-    cout<<"prueba2"<<endl;
     Nodo* temp=_head;
-    cout<<"prueba3"<<endl;
     for(int i =0; i<(_size-UNO); i++){
         temp=temp->getNext();
         cout<<i<<endl;
     }
-    cout<<"prueba4"<<endl;
     Nodo* nuevo= new Nodo(pID,pSpace,pSize);
-    cout<<"prueba5"<<endl;
     temp->setNext(nuevo);
-    cout<<"prueba6"<<endl;
     _size++;
 }
 

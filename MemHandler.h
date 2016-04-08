@@ -30,6 +30,7 @@ private:
     const char* _diskLocation;
     int _MemoryLeft;
     int _DiskLeft;
+    int _DiskPointer;
     void PassToDisk();
     void writeOnMemory(const char* mensaje);
     void readOnMemory(const char * mensaje);
