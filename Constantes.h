@@ -27,6 +27,7 @@ public:
     static const char* DISK_LOCATION;
     static const int WRITE=1;
     static const int READ=0;
+    static const int DEL=2;
     //char para extraer el id del json
     static const char* ID;
     //char para extraer la operacion solicitada(W=1,R=0,Del=2)

@@ -21,6 +21,7 @@ public:
     void borrar(int pData);
     Nodo* getHead();
     int getSize();
+    bool find(int pID);
 private:
     Nodo* _head;
     int _size;

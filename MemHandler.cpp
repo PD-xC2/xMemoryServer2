@@ -57,11 +57,14 @@ void MemHandler::LoopForService() {
         int op= data.GetInt();
         if(op==WRITE){
             writeOnMemory(IncommingMessage.c_str());
-            _servidor->sendMsg("save\0",5);
+            _servidor->sendMsg("save\0",CINCO);
         }
         else if(op==READ){
-            std::cout<<"prueba-1"<<std::endl;
             readOnMemory(IncommingMessage.c_str());
+        }
+        else if(op==DEL){
+            delOnMemory(IncommingMessage.c_str());
+            _servidor->sendMsg("del\0",CUATRO);
         }
     }
 }
@@ -164,6 +167,21 @@ void MemHandler::writeOnMemory(const char* mensaje) {
     //guardamos los datos de punteo a la memoria del nuevo mensaje que 
     //acabamos de guardar.
     _listaDatosAlmacenados->insert(idOfData,spaceOfMemory,sizeOfData);
+}
+
+/**
+ * metodo para eliminar los datos de la memoria o disco.
+ * @param mensaje recibe un dato tipo const char* que es el
+ * Json que contiene el Id del mensaje.
+ */
+void MemHandler::delOnMemory(const char* mensaje) {
+    //parseamos el documento
+    rapidjson::Document _JsonDocument;
+    _JsonDocument.Parse(mensaje);
+    //obtenemos el id
+    rapidjson::Value & idFromJson= _JsonDocument[ID];
+    int id= idFromJson.GetInt();
+    _listaDatosAlmacenados->borrar(id);
 }
 
 /**

@@ -48,25 +48,46 @@ void lista::borrar(int pID) {
         Nodo* temp= _head;
         _head=_head->getNext();
         delete temp;
+        temp=NULL;
         _size--;
         return;
     }
-    Nodo* temp=_head;
-    while(temp->getNext()!=NULL ||temp->getNext()->getID()==pID)
-        temp=temp->getNext();
-    if(temp->getNext()==NULL && temp->getID()!=pID){
+    Nodo* padre=_head;
+    Nodo* hijo=padre;
+    while(hijo!=NULL && hijo->getID()!=pID){
+        padre=hijo;
+        hijo=hijo->getNext();
+    }
+    if(hijo==NULL){
         if(DEBUG)cout<<"dato no existe"<<endl;
         return;
     }
     else{
-        Nodo* toDelete= temp->getNext();
-        Nodo* next= temp->getNext()->getNext();
-        temp->setNext(next);
-        if(toDelete!=NULL)
-            delete toDelete;
+        padre->setNext(hijo->getNext());
+        delete hijo;
+        hijo=NULL;
         _size--;
     }
 }
+
+/**
+ * metodo para saber si un cierto dato ya existe dentro de la 
+ * lista.
+ * @param pID recibe un dato entero que es el ID del dato.
+ * @return retorna un bool de si el dato ya existe
+ */
+bool lista::find(int pID) {
+    Nodo* temp=_head;
+    for(int i=0; i<_size; i++){
+        if(temp->getID()==pID)
+            break;
+        temp=temp->getNext();
+    }
+    if(temp!=NULL)
+        return true;
+    return false;
+}
+
 
 /**
  * metodo para obtener la cabeza de la lista, este es el nodo

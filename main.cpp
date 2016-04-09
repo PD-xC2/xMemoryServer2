@@ -50,7 +50,15 @@ int main(int argc, char** argv) {
     list->insert(2,23,46);
     list->insert(5,46,69);
     list->insert(3,69,92);
+    cout<<"---"<<list->find(7)<<endl;
     Nodo* temp =list->getHead();
+    for(int i =0; i<list->getSize(); i++){
+        std::cout<<"id:"<<temp->getID()<<",space:"<<temp->getSpaceSave()<<",size:"<<temp->getSizeSave()<<std::endl;
+        temp=temp->getNext();
+    }
+    list->borrar(3);
+    list->borrar(0);
+    temp =list->getHead();
     for(int i =0; i<list->getSize(); i++){
         std::cout<<"id:"<<temp->getID()<<",space:"<<temp->getSpaceSave()<<",size:"<<temp->getSizeSave()<<std::endl;
         temp=temp->getNext();

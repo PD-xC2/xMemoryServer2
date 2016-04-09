@@ -34,6 +34,7 @@ private:
     void PassToDisk();
     void writeOnMemory(const char* mensaje);
     void readOnMemory(const char * mensaje);
+    void delOnMemory(const char * mensaje);
 };
 
 #endif	/* MEMHANDLER_H */
