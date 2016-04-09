@@ -7,7 +7,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/ellioth/NetBeansProjects/xMemoryServer/MemHandler.cpp</file>
+            <file>file:/home/ellioth/NetBeansProjets2/xMemoryServer/Constantes.h</file>
+            <file>file:/home/ellioth/NetBeansProjets2/xMemoryServer/Lista.cpp</file>
+            <file>file:/home/ellioth/NetBeansProjets2/xMemoryServer/Constantes.cpp</file>
+            <file>file:/home/ellioth/NetBeansProjets2/xMemoryServer/main.cpp</file>
+            <file>file:/home/ellioth/NetBeansProjets2/xMemoryServer/MemHandler.cpp</file>
+            <file>file:/home/ellioth/NetBeansProjets2/xMemoryServer/MemHandler.h</file>
         </group>
     </open-files>
 </project-private>

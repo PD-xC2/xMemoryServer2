@@ -28,7 +28,6 @@ void lista::insert(int pID,int pSpace, int pSize) {
     Nodo* temp=_head;
     for(int i =0; i<(_size-UNO); i++){
         temp=temp->getNext();
-        cout<<i<<endl;
     }
     Nodo* nuevo= new Nodo(pID,pSpace,pSize);
     temp->setNext(nuevo);

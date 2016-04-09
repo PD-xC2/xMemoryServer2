@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
     cout<<nuevo<<endl;*/
     
     //pruebas del memHandler
-    MemHandler * nuevo = new MemHandler(5000,"server_datas.txt");
+    MemHandler * nuevo = new MemHandler(5001,"server_datas.txt");
     /*lista * list = new lista();
     list->insert(0,0,23);
     list->insert(2,23,46);

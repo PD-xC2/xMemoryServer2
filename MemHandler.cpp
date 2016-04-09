@@ -89,7 +89,6 @@ void MemHandler::readOnMemory(const char* mensaje) {
             break;
         temp= temp->getNext();
     }
-    std::cout<<"prueba5"<<std::endl;
     //verificamos que el nodo no sea nulo
     if(temp==NULL){
         _servidor->sendMsg("NULL\0",CUATRO);
