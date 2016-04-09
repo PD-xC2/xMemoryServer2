@@ -12,13 +12,14 @@
  * @param port puerto por donde instancearemos nuestro programa
  * @param DiskLocation lugar donde guardaremos los archivos del server
  */
-MemHandler::MemHandler(int port, const char* DiskLocation) {
+MemHandler::MemHandler(int port,int pMemorySize) {
+    _Memory_Size=pMemorySize;
     _servidor= new servidor(port);
-    _chuckMemory=malloc(SPACE_MEMORY);
+    _chuckMemory=malloc(_Memory_Size);
     _writerMemoryPointer=_chuckMemory;
-    _MemoryLeft=SPACE_MEMORY;
-    _DiskLeft=SPACE_MEMORY;
-    _diskLocation=DiskLocation;
+    _MemoryLeft=_Memory_Size;
+    _DiskLeft=_Memory_Size;
+    _diskLocation=DISK_LOCATION;
     _DiskPointer=CERO;
     _listaDatosAlmacenados= new lista();
     LoopForService();
@@ -142,7 +143,7 @@ void MemHandler::writeOnMemory(const char* mensaje) {
     getDataOfJson= _JsonDocument[ID];
     int idOfData=getDataOfJson.GetInt();
     //espacio en memoria donde se almacenara el dato
-    int spaceOfMemory=(SPACE_MEMORY-_MemoryLeft);
+    int spaceOfMemory=(_Memory_Size-_MemoryLeft);
     //tamaño del mensaje que nos esta entrando
     int sizeOfData=getMsgDatas.length();
     /*opcion por si ya no nos queda espacio en memoria, 
@@ -216,7 +217,7 @@ void MemHandler::PassToDisk() {
         diskWriter.close();
     }
     //limpiamos la memoria y reestablecemos los datos de escritura en memoria
-    bzero(_chuckMemory,SPACE_MEMORY);
+    bzero(_chuckMemory,_Memory_Size);
     _writerMemoryPointer=_chuckMemory;
-    _MemoryLeft=SPACE_MEMORY;
+    _MemoryLeft=_Memory_Size;
 }
