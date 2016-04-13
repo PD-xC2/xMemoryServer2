@@ -15,7 +15,7 @@
  * @param pData dato tipo entero, esta es la posicion en memoria 
  * o disco en donde guardamos los datos.
  */
-Nodo::Nodo(int pId, int pData, int pSize) {
+Nodo::Nodo(int pId, long pData, long pSize) {
     _IdData= pId;
     _AtSpaceSave= pData;
     _SizeData=pSize;
@@ -35,7 +35,7 @@ int Nodo::getSpaceSave() {
  * @param pSpace recibe un dato tipo entero que es el espacio
  * donde se le guardo al dato.
  */
-void Nodo::setSpaceSave(int pSpace) {
+void Nodo::setSpaceSave(long pSpace) {
     _AtSpaceSave= pSpace;
 }
 

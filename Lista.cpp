@@ -19,7 +19,7 @@ lista::~lista() {
  * @param pData recibe un dato, en este caso seria
  * un numero entero.
  */
-void lista::insert(int pID,int pSpace, int pSize) {
+void lista::insert(int pID,long pSpace, long pSize) {
     if(_head==NULL){
         _head=new Nodo(pID,pSpace,pSize);
         _size++;

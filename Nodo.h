@@ -13,20 +13,20 @@
  */
 class Nodo {
 public:
-    Nodo(int pId,int pData, int pSize);
+    Nodo(int pId,long pData, long pSize);
     virtual ~Nodo();
     Nodo* getNext();
     void setNext(Nodo* pNext);
     int getSpaceSave();
     int getSizeSave();
     int getID();
-    void setSpaceSave(int pSpace);
+    void setSpaceSave(long pSpace);
     void setSaveDisk();
     bool saveAtDisk();
 private:
     int _IdData;
-    int _AtSpaceSave;
-    int _SizeData;
+    long _AtSpaceSave;
+    long _SizeData;
     Nodo* _next;
     bool _saveAtDisk;
 };

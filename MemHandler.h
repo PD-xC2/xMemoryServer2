@@ -19,7 +19,7 @@
 
 class MemHandler :public Constantes {
 public:
-    MemHandler(int port,int pMemorySize);
+    MemHandler(int port,long pMemorySize);
     virtual ~MemHandler();
     void LoopForService();
 private:
@@ -28,10 +28,10 @@ private:
     void* _chuckMemory;
     void* _writerMemoryPointer;
     const char* _diskLocation;
-    int _MemoryLeft;
-    int _DiskLeft;
-    int _DiskPointer;
-    int _Memory_Size;
+    long _MemoryLeft;
+    long _DiskLeft;
+    long _DiskPointer;
+    long _Memory_Size;
     void PassToDisk();
     void writeOnMemory(const char* mensaje);
     void readOnMemory(const char * mensaje);

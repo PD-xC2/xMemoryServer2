@@ -12,7 +12,7 @@
  * @param port puerto por donde instancearemos nuestro programa
  * @param DiskLocation lugar donde guardaremos los archivos del server
  */
-MemHandler::MemHandler(int port,int pMemorySize) {
+MemHandler::MemHandler(int port,long pMemorySize) {
     _Memory_Size=pMemorySize;
     _servidor= new servidor(port);
     _chuckMemory=malloc(_Memory_Size);
@@ -52,20 +52,21 @@ void MemHandler::LoopForService() {
         _JsonDocument.Parse(IncommingMessage.c_str());
         if(!_JsonDocument.IsObject()){
             std::cout<<"falla, archivo no es tipo json"<<std::endl;
-            return;
         }
-        rapidjson::Value & data = _JsonDocument[OPERATION];
-        int op= data.GetInt();
-        if(op==WRITE){
-            writeOnMemory(IncommingMessage.c_str());
-            _servidor->sendMsg("save\0",CINCO);
-        }
-        else if(op==READ){
-            readOnMemory(IncommingMessage.c_str());
-        }
-        else if(op==DEL){
-            delOnMemory(IncommingMessage.c_str());
-            _servidor->sendMsg("del\0",CUATRO);
+        else{
+            rapidjson::Value & data = _JsonDocument[OPERATION];
+            int op= data.GetInt();
+            if(op==WRITE){
+                writeOnMemory(IncommingMessage.c_str());
+                _servidor->sendMsg("save\0",CINCO);
+            }
+            else if(op==READ){
+                readOnMemory(IncommingMessage.c_str());
+            }
+            else if(op==DEL){
+                delOnMemory(IncommingMessage.c_str());
+                _servidor->sendMsg("del\0",CUATRO);
+            }
         }
     }
 }
@@ -97,8 +98,8 @@ void MemHandler::readOnMemory(const char* mensaje) {
     }
     //verificamos que los datos esten en memoria.
     else if(!temp->saveAtDisk()){
-        int space=temp->getSpaceSave();
-        int size= temp->getSizeSave();
+        long space=temp->getSpaceSave();
+        long size= temp->getSizeSave();
         char dato[size+UNO];
         void * SpaceOnMemory=(_chuckMemory+space);
         for(int i=0; i<size; i++){
@@ -109,8 +110,8 @@ void MemHandler::readOnMemory(const char* mensaje) {
     }
     //tomamos por hecho que los datos estan en disco
     else{
-        int space=temp->getSpaceSave();
-        int size= temp->getSizeSave();
+        long space=temp->getSpaceSave();
+        long size= temp->getSizeSave();
         char dato[size+UNO];
         fstream readOnDisk(_diskLocation);
         if(readOnDisk.is_open()){
@@ -143,7 +144,7 @@ void MemHandler::writeOnMemory(const char* mensaje) {
     getDataOfJson= _JsonDocument[ID];
     int idOfData=getDataOfJson.GetInt();
     //espacio en memoria donde se almacenara el dato
-    int spaceOfMemory=(_Memory_Size-_MemoryLeft);
+    long spaceOfMemory=(_Memory_Size-_MemoryLeft);
     //tamaño del mensaje que nos esta entrando
     int sizeOfData=getMsgDatas.length();
     /*opcion por si ya no nos queda espacio en memoria, 
@@ -197,9 +198,9 @@ void MemHandler::PassToDisk() {
                 //movmevos el puntero del archivo a la ultima posicion
                 diskWriter.seekg(_DiskPointer);
                 //obtenemos los datos del json que vamos a guardar
-                int DiskPointer= diskWriter.tellg();
-                int space=temp->getSpaceSave();
-                int size=temp->getSizeSave();
+                long DiskPointer= diskWriter.tellg();
+                long space=temp->getSpaceSave();
+                long size=temp->getSizeSave();
                 //obtenemos el puntero de la memoria
                 PointerOfMemory=(_chuckMemory+space);
                 //escribimos en disco

@@ -17,8 +17,8 @@ class lista :public Constantes{
 public:
     lista();
     virtual ~lista();
-    void insert(int pID,int pSpace, int pSize);
-    void borrar(int pData);
+    void insert(int pID,long pSpace, long pSize);
+    void borrar(int pID);
     Nodo* getHead();
     int getSize();
     bool find(int pID);
